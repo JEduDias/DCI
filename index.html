@@ -50,7 +50,7 @@
         table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; }
         th { background: #EDF2F7; padding: 6px 4px; font-weight: 700; border: 1px solid var(--border-color); white-space: nowrap; }
         td { border: 1px solid var(--border-color); padding: 2px; }
-        td input { height: 26px; font-size: 0.75rem; padding: 2px 4px; }
+        td input, td select { height: 26px; font-size: 0.75rem; padding: 2px 4px; }
 
         /* Ficha do Motor */
         .motor-section { display: none; background: #FFFBF5; border: 1px solid #FDBA74; border-radius: 6px; padding: 0.85rem; margin-bottom: 0.85rem; }
@@ -107,7 +107,6 @@
                 background: transparent !important;
             }
             
-            /* OCULTA O PLACEHOLDER NA IMPRESSÃO SE ESTIVER VAZIO */
             textarea::placeholder, input::placeholder {
                 color: transparent !important;
                 opacity: 0 !important;
@@ -116,7 +115,7 @@
             textarea { height: 32px !important; }
             th { padding: 3px 2px !important; font-size: 0.65rem !important; background-color: #F1F5F9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             td { padding: 1px !important; }
-            td input { height: 18px !important; font-size: 0.65rem !important; }
+            td input, td select { height: 18px !important; font-size: 0.65rem !important; }
             .btn-add, .btn-remove, .action-bar, footer { display: none !important; }
             .table-responsive { margin-bottom: 2px !important; }
             .motor-section { padding: 6px !important; margin-bottom: 6px !important; page-break-inside: avoid; }
@@ -168,18 +167,18 @@
                         <thead>
                             <tr>
                                 <th style="width: 35px;">Item</th>
-                                <th style="width: 50px;">Qtd</th>
+                                <th style="width: 110px;">Tipo</th>
+                                <th style="width: 45px;">Qtd</th>
                                 <th>Descrição e Aplicação da Carga</th>
-                                <th style="width: 75px;">Unit. (CV)</th>
-                                <th style="width: 75px;">Tipo</th>
+                                <th style="width: 70px;">Unit. (CV)</th>
                                 <th style="width: 55px;">Fases</th>
                                 <th style="width: 65px;">Volts</th>
                                 <th style="width: 65px;">Ampères</th>
                                 <th style="width: 55px;">RPM</th>
-                                <th style="width: 55px;">Polos</th>
-                                <th style="width: 55px;">kVA</th>
-                                <th style="width: 55px;">kW</th>
-                                <th style="width: 55px;">kVAR</th>
+                                <th style="width: 50px;">Polos</th>
+                                <th style="width: 60px;">kVA</th>
+                                <th style="width: 60px;">kW</th>
+                                <th style="width: 60px;">kVAR</th>
                                 <th style="width: 30px;" class="btn-add">Ação</th>
                             </tr>
                         </thead>
@@ -234,7 +233,7 @@
                     </div>
                     <div class="form-group">
                         <label>Acréscimo Previsto (kW)</label>
-                        <input type="number" id="acresccimoKw" min="0" disabled>
+                        <input type="number" id="acresccimoKw" min="0" step="0.1" disabled>
                     </div>
                 </div>
 
@@ -258,6 +257,32 @@
                 <div class="form-group">
                     <label>G — Principal Atividade da Unidade Consumidora</label>
                     <input type="text" required>
+                </div>
+            </div>
+
+            <!-- Valores Estimados -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="category-accent"></div>
+                    <h2 class="card-title">Valores Estimados</h2>
+                </div>
+                <div class="form-grid-4">
+                    <div class="form-group">
+                        <label>Carga Instalada (kW)</label>
+                        <input type="number" id="cargaInstaladaTotal" step="0.1" readonly style="font-weight: bold; background-color: #F1F5F9;">
+                    </div>
+                    <div class="form-group">
+                        <label>Carga Reduzida (kW)</label>
+                        <input type="number" id="cargaReduzida" step="0.1" min="0" onkeydown="impedirSinalNegativo(event)">
+                    </div>
+                    <div class="form-group">
+                        <label>Demanda Declarada (kW)</label>
+                        <input type="number" id="demandaDeclarada" step="0.1" min="0" onkeydown="impedirSinalNegativo(event)">
+                    </div>
+                    <div class="form-group">
+                        <label>COS. PHI (%)</label>
+                        <input type="number" id="cosPhi" step="0.1" min="0" max="100" placeholder="Ex: 92" onkeydown="impedirSinalNegativo(event)">
+                    </div>
                 </div>
             </div>
 
@@ -305,6 +330,8 @@
             const hoje = new Date().toISOString().split('T')[0];
             document.getElementById("dataAtual").value = hoje;
 
+            // Inicializa com 2 linhas padrão na tabela
+            adicionarLinhaDCI();
             adicionarLinhaDCI();
         };
 
@@ -316,18 +343,45 @@
 
             tr.innerHTML = `
                 <td class="item-index" style="text-align: center; font-weight: bold;"></td>
-                <td><input type="number" min="1" value="1" style="text-align: center;"></td>
+                <td>
+                    <select class="tipo-select">
+                        <option value="" selected disabled>Selecione...</option>
+                        <option value="Motor">Motor</option>
+                        <option value="Tomada(s)">Tomada(s)</option>
+                        <option value="Iluminação">Iluminação</option>
+                        <option value="Ar Condicionado">Ar Cond.</option>
+                        <option value="Aquecimento">Aquecimento</option>
+                        <option value="Transformador">Transformador</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </td>
+                <td><input type="number" class="qtd-input" min="1" value="1" style="text-align: center;" oninput="calcularKwSubtotal(this)"></td>
                 <td><input type="text" class="desc-input"></td>
-                <td><input type="number" class="cv-input" step="0.1" min="0" onkeydown="impedirSinalNegativo(event)" oninput="processarAlteracaoMotor(this)"></td>
-                <td><input type="text"></td>
-                <td><input type="text" style="text-align: center;"></td>
-                <td><input type="text" style="text-align: center;"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
+                <td><input type="number" class="cv-input" step="0.1" min="0" onkeydown="impedirSinalNegativo(event)" oninput="calcularKwSubtotal(this)"></td>
+                <td>
+                    <select class="fases-select">
+                        <option value="" selected disabled>Selecione...</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="volts-select">
+                        <option value="" selected disabled>Selecione...</option>
+                        <option value="127">127V</option>
+                        <option value="220">220V</option>
+                        <option value="254">254V</option>
+                        <option value="380">380V</option>
+                        <option value="440">440V</option>
+                    </select>
+                </td>
+                <td><input type="number" class="amperes-input" step="0.1" min="0"></td>
+                <td><input type="number" class="rpm-input" min="0"></td>
+                <td><input type="number" class="polos-input" min="0"></td>
+                <td><input type="number" class="kva-input" step="0.1" min="0"></td>
+                <td><input type="number" class="kw-input" step="0.1" min="0" oninput="recalcularCargaInstaladaTotal()"></td>
+                <td><input type="number" class="kvar-input" step="0.1" min="0"></td>
                 <td style="text-align: center;" class="btn-add"><button type="button" class="btn-remove" onclick="removerLinhaDCI(this)">X</button></td>
             `;
             tbody.appendChild(tr);
@@ -340,6 +394,33 @@
             }
         }
 
+        function calcularKwSubtotal(elemento) {
+            const linha = elemento.closest("tr");
+            const qtd = parseFloat(linha.querySelector(".qtd-input").value) || 0;
+            const cv = parseFloat(linha.querySelector(".cv-input").value) || 0;
+            const kwInput = linha.querySelector(".kw-input");
+
+            if (cv > 0) {
+                const kwTotal = (qtd * cv * 0.7355);
+                kwInput.value = (Math.round(kwTotal * 10) / 10).toFixed(1);
+            }
+
+            processarAlteracaoMotor(linha.querySelector(".cv-input"));
+            recalcularCargaInstaladaTotal();
+        }
+
+        function recalcularCargaInstaladaTotal() {
+            const kwInputs = document.querySelectorAll(".kw-input");
+            let totalKw = 0;
+
+            kwInputs.forEach(input => {
+                const val = parseFloat(input.value) || 0;
+                totalKw += val;
+            });
+
+            document.getElementById("cargaInstaladaTotal").value = (Math.round(totalKw * 10) / 10).toFixed(1);
+        }
+
         function removerLinhaDCI(btn) {
             const linha = btn.closest("tr");
             const index = Array.from(linha.parentNode.children).indexOf(linha) + 1;
@@ -349,6 +430,7 @@
             if (fichaMotor) fichaMotor.remove();
 
             atualizarNumeracaoItens();
+            recalcularCargaInstaladaTotal();
         }
 
         function atualizarNumeracaoItens() {
@@ -472,9 +554,9 @@
                             <label>Número de Fases</label>
                             <select required>
                                 <option value="" selected disabled>Selecione...</option>
-                                <option>1Ø (Monofásico)</option>
-                                <option>2Ø (Bifásico)</option>
-                                <option>3Ø (Trifásico)</option>
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
                             </select>
                         </div>
                     </div>
