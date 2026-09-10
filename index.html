@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhamento de Carga Instalada (DCI) — COPEL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --copel-orange: #FF6B00;
+            --copel-orange-dark: #E05D00;
+            --bg-gray: #F4F6F8;
+            --card-bg: #FFFFFF;
+            --text-main: #2C3E50;
+            --text-muted: #6C7A89;
+            --border-color: #E2E8F0;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Open Sans', sans-serif; background-color: var(--bg-gray); color: var(--text-main); line-height: 1.3; padding-bottom: 30px; }
+
+        header { background-color: var(--copel-orange); color: white; padding: 0 2rem; height: 60px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .header-brand { display: flex; align-items: center; gap: 16px; }
+        .header-logo { height: 34px; width: auto; object-fit: contain; }
+        .header-divider { width: 1px; height: 22px; background-color: rgba(255, 255, 255, 0.4); }
+        .header-title { font-size: 1.05rem; font-weight: 600; }
+
+        main { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; width: 100%; }
+
+        .card { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 0.85rem; margin-bottom: 0.85rem; box-shadow: var(--shadow-sm); }
+        .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3rem; }
+        .category-accent { width: 4px; height: 14px; background-color: var(--copel-orange); border-radius: 2px; }
+        .card-title { font-size: 0.9rem; font-weight: 700; color: #1E293B; text-transform: uppercase; }
+
+        .form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+        .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+        .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 2px; }
+        label { font-size: 0.73rem; font-weight: 700; color: #334155; }
+        input, select, textarea { width: 100%; padding: 5px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.8rem; background-color: #FAFCFE; transition: all 0.2s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--copel-orange); background-color: white; }
+        input:disabled, select:disabled { background-color: #E2E8F0; cursor: not-allowed; }
+        input:required, select:required { border-left: 3px solid #EF4444; }
+
+        /* Tabela DCI */
+        .table-responsive { overflow-x: auto; margin-bottom: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; }
+        th { background: #EDF2F7; padding: 6px 4px; font-weight: 700; border: 1px solid var(--border-color); white-space: nowrap; }
+        td { border: 1px solid var(--border-color); padding: 2px; }
+        td input { height: 26px; font-size: 0.75rem; padding: 2px 4px; }
+
+        /* Ficha do Motor */
+        .motor-section { display: none; background: #FFFBF5; border: 1px solid #FDBA74; border-radius: 6px; padding: 0.85rem; margin-bottom: 0.85rem; }
+        .motor-section.active { display: block; }
+        .motor-title { font-size: 0.85rem; font-weight: 800; color: #C2410C; margin-bottom: 0.6rem; border-bottom: 1px dashed #FDBA74; padding-bottom: 0.3rem; display: flex; justify-content: space-between; }
+
+        .btn { background-color: var(--copel-orange); color: white; border: none; padding: 8px 16px; border-radius: 5px; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+        .btn-add { background-color: #0284C7; font-size: 0.72rem; padding: 4px 10px; border-radius: 4px; }
+        .btn-remove { background-color: #EF4444; padding: 2px 6px; font-size: 0.7rem; border-radius: 3px; color: white; border: none; cursor: pointer; }
+
+        .action-bar { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; }
+        footer { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 1.5rem; }
+
+        /* Estilos Exclusivos para a Impressão / PDF */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 8mm;
+            }
+            body {
+                background: white;
+                color: black;
+                padding: 0;
+                font-size: 10px;
+            }
+            header {
+                position: relative !important;
+                top: auto !important;
+                height: 40px !important;
+                padding: 0 10px !important;
+                background-color: var(--copel-orange) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                box-shadow: none !important;
+                margin-bottom: 8px !important;
+            }
+            .header-title { font-size: 0.85rem !important; }
+            main { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .card {
+                border: 1px solid #CBD5E1 !important;
+                padding: 6px !important;
+                margin-bottom: 6px !important;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+            .card-header { margin-bottom: 4px !important; padding-bottom: 2px !important; }
+            .card-title { font-size: 0.75rem !important; }
+            label { font-size: 0.65rem !important; }
+            input, select, textarea {
+                border: 1px solid #CBD5E1 !important;
+                padding: 2px 4px !important;
+                font-size: 0.7rem !important;
+                height: 20px !important;
+                background: transparent !important;
+            }
+            
+            /* OCULTA O PLACEHOLDER NA IMPRESSÃO SE ESTIVER VAZIO */
+            textarea::placeholder, input::placeholder {
+                color: transparent !important;
+                opacity: 0 !important;
+            }
+
+            textarea { height: 32px !important; }
+            th { padding: 3px 2px !important; font-size: 0.65rem !important; background-color: #F1F5F9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            td { padding: 1px !important; }
+            td input { height: 18px !important; font-size: 0.65rem !important; }
+            .btn-add, .btn-remove, .action-bar, footer { display: none !important; }
+            .table-responsive { margin-bottom: 2px !important; }
+            .motor-section { padding: 6px !important; margin-bottom: 6px !important; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-brand">
+            <img src="./logo.png" alt="COPEL" class="header-logo" onerror="this.style.display='none'">
+            <div class="header-divider"></div>
+            <div class="header-title">Detalhamento de Carga Instalada (DCI)</div>
+        </div>
+    </header>
+
+    <main>
+        <form id="dciForm">
+            <!-- Identificação do Protocolo -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="category-accent"></div>
+                    <h2 class="card-title">Identificação do Protocolo e Local</h2>
+                </div>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label>Nº do Protocolo</label>
+                        <input type="text">
+                    </div>
+                    <div class="form-group">
+                        <label>Local / Unidade Consumidora</label>
+                        <input type="text">
+                    </div>
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="dataAtual">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela DCI -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="category-accent"></div>
+                    <h2 class="card-title">Relação de Equipamentos e Cargas</h2>
+                </div>
+                <div class="table-responsive">
+                    <table id="dciTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 35px;">Item</th>
+                                <th style="width: 50px;">Qtd</th>
+                                <th>Descrição e Aplicação da Carga</th>
+                                <th style="width: 75px;">Unit. (CV)</th>
+                                <th style="width: 75px;">Tipo</th>
+                                <th style="width: 55px;">Fases</th>
+                                <th style="width: 65px;">Volts</th>
+                                <th style="width: 65px;">Ampères</th>
+                                <th style="width: 55px;">RPM</th>
+                                <th style="width: 55px;">Polos</th>
+                                <th style="width: 55px;">kVA</th>
+                                <th style="width: 55px;">kW</th>
+                                <th style="width: 55px;">kVAR</th>
+                                <th style="width: 30px;" class="btn-add">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dciTableBody">
+                            <!-- Linhas dinâmicas -->
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-add" onclick="adicionarLinhaDCI()">+ Adicionar Nova Carga</button>
+            </div>
+
+            <!-- Parâmetros de Operação -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="category-accent"></div>
+                    <h2 class="card-title">Parâmetros e Condições de Operação</h2>
+                </div>
+                
+                <div class="form-grid-3" style="margin-bottom: 0.4rem;">
+                    <div class="form-group">
+                        <label>A — Existe Geração Própria?</label>
+                        <select id="geracaoPropria" onchange="toggleGeracaoPropria()">
+                            <option value="" selected disabled>Selecione...</option>
+                            <option value="NAO">NÃO</option>
+                            <option value="SIM">SIM (Anexar Diagrama)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Há Previsão de Geração Própria?</label>
+                        <select id="previsaoGeracao" disabled onchange="toggleDataGeracao()">
+                            <option value="NAO" selected>NÃO</option>
+                            <option value="SIM">SIM</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Data de Previsão de Geração</label>
+                        <input type="date" id="dataGeracao" disabled>
+                    </div>
+                </div>
+
+                <div class="form-grid-3" style="margin-bottom: 0.4rem;">
+                    <div class="form-group">
+                        <label>B — Previsão Aumento Carga?</label>
+                        <select id="aumentoCarga" onchange="toggleAumentoCarga()">
+                            <option value="NAO" selected>NÃO</option>
+                            <option value="SIM">SIM</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Data Previsão Aumento Carga</label>
+                        <input type="date" id="dataAumentoCarga" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Acréscimo Previsto (kW)</label>
+                        <input type="number" id="acresccimoKw" min="0" disabled>
+                    </div>
+                </div>
+
+                <div class="form-grid-3" style="margin-bottom: 0.4rem;">
+                    <div class="form-group"><label>Regime Diário — Horas Diurnas</label><input type="number" min="0"></div>
+                    <div class="form-group"><label>Regime Diário — Horas Noturnas</label><input type="number" min="0"></div>
+                    <div class="form-group"><label>Regime Anual</label><select><option>PERMANENTE</option><option>SAZONAL</option></select></div>
+                </div>
+
+                <div class="form-grid-2" style="margin-bottom: 0.4rem;">
+                    <div class="form-group">
+                        <label>D — Cargas Simultâneas na Máxima Carga</label>
+                        <textarea rows="2" placeholder="Em condições de máxima carga provável, quais equipamentos e/ou aparelhos funcionarão simultaneamente?"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>E — Equipamentos Reserva</label>
+                        <textarea rows="2" placeholder="Entre os equipamentos e/ou aparelhos listados, quais itens são considerados “RESERVA”?"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>G — Principal Atividade da Unidade Consumidora</label>
+                    <input type="text" required>
+                </div>
+            </div>
+
+            <!-- Responsabilidade Técnica -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="category-accent"></div>
+                    <h2 class="card-title">Responsabilidade pelas Informações</h2>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Responsável pela Ligação</label>
+                        <div style="display: flex; gap: 0.4rem;">
+                            <input type="text" placeholder="Nome Completo" style="flex: 2;" required>
+                            <input type="text" placeholder="RG" style="flex: 1;" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Responsável pela Instalação</label>
+                        <div style="display: flex; gap: 0.4rem;">
+                            <input type="text" placeholder="Nome Completo" style="flex: 2;" required>
+                            <input type="text" placeholder="RG" style="flex: 1;" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fichas de Motores >= 75 CV (Posicionadas no final do documento) -->
+            <div id="motoresContainer"></div>
+
+            <div class="action-bar">
+                <button class="btn" type="button" onclick="imprimirRelatorio()">Imprimir / Salvar PDF</button>
+            </div>
+        </form>
+    </main>
+
+    <footer>
+        <p>COPEL — Análise de Projetos da Medição | Detalhamento de Carga Instalada</p>
+    </footer>
+
+    <script>
+        let totalLinhas = 0;
+
+        window.onload = function() {
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById("dataAtual").value = hoje;
+
+            adicionarLinhaDCI();
+        };
+
+        function adicionarLinhaDCI() {
+            totalLinhas++;
+            const tbody = document.getElementById("dciTableBody");
+            const tr = document.createElement("tr");
+            tr.className = "linha-dci";
+
+            tr.innerHTML = `
+                <td class="item-index" style="text-align: center; font-weight: bold;"></td>
+                <td><input type="number" min="1" value="1" style="text-align: center;"></td>
+                <td><input type="text" class="desc-input"></td>
+                <td><input type="number" class="cv-input" step="0.1" min="0" onkeydown="impedirSinalNegativo(event)" oninput="processarAlteracaoMotor(this)"></td>
+                <td><input type="text"></td>
+                <td><input type="text" style="text-align: center;"></td>
+                <td><input type="text" style="text-align: center;"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td style="text-align: center;" class="btn-add"><button type="button" class="btn-remove" onclick="removerLinhaDCI(this)">X</button></td>
+            `;
+            tbody.appendChild(tr);
+            atualizarNumeracaoItens();
+        }
+
+        function impedirSinalNegativo(e) {
+            if (e.key === "-" || e.key === "e") {
+                e.preventDefault();
+            }
+        }
+
+        function removerLinhaDCI(btn) {
+            const linha = btn.closest("tr");
+            const index = Array.from(linha.parentNode.children).indexOf(linha) + 1;
+            linha.remove();
+
+            const fichaMotor = document.getElementById(`ficha-motor-${index}`);
+            if (fichaMotor) fichaMotor.remove();
+
+            atualizarNumeracaoItens();
+        }
+
+        function atualizarNumeracaoItens() {
+            const linhas = document.querySelectorAll("#dciTableBody .linha-dci");
+            linhas.forEach((linha, i) => {
+                const itemNum = i + 1;
+                linha.querySelector(".item-index").innerText = itemNum;
+                
+                const cvInput = linha.querySelector(".cv-input");
+                cvInput.setAttribute("data-item-id", itemNum);
+                
+                const descInput = linha.querySelector(".desc-input");
+                descInput.setAttribute("data-item-id", itemNum);
+                descInput.oninput = function() { processarAlteracaoMotor(cvInput); };
+            });
+        }
+
+        function processarAlteracaoMotor(cvInput) {
+            const itemId = cvInput.getAttribute("data-item-id");
+            const linha = cvInput.closest("tr");
+            const descInput = linha.querySelector(".desc-input");
+            const potencia = parseFloat(cvInput.value) || 0;
+            const container = document.getElementById("motoresContainer");
+            const fichaExistente = document.getElementById(`ficha-motor-${itemId}`);
+
+            if (potencia >= 75) {
+                const nomeEquipamento = descInput.value.trim() || `Motor Item ${itemId}`;
+
+                if (!fichaExistente) {
+                    const fichaHTML = document.createElement("div");
+                    fichaHTML.className = "motor-section active";
+                    fichaHTML.id = `ficha-motor-${itemId}`;
+                    fichaHTML.innerHTML = gerarTemplateFichaMotor(itemId, nomeEquipamento, potencia);
+                    container.appendChild(fichaHTML);
+                } else {
+                    document.getElementById(`motor-titulo-nome-${itemId}`).innerText = `${nomeEquipamento} (${potencia} CV)`;
+                }
+            } else {
+                if (fichaExistente) {
+                    fichaExistente.remove();
+                }
+            }
+        }
+
+        function toggleGeracaoPropria() {
+            const geracao = document.getElementById("geracaoPropria").value;
+            const previsao = document.getElementById("previsaoGeracao");
+            const dataGeracao = document.getElementById("dataGeracao");
+
+            if (geracao === "NAO") {
+                previsao.disabled = false;
+            } else {
+                previsao.disabled = true;
+                previsao.value = "NAO";
+                dataGeracao.disabled = true;
+                dataGeracao.required = false;
+                dataGeracao.value = "";
+            }
+        }
+
+        function toggleDataGeracao() {
+            const previsao = document.getElementById("previsaoGeracao").value;
+            const dataGeracao = document.getElementById("dataGeracao");
+            
+            if (previsao === "SIM") {
+                dataGeracao.disabled = false;
+                dataGeracao.required = true;
+            } else {
+                dataGeracao.disabled = true;
+                dataGeracao.required = false;
+                dataGeracao.value = "";
+            }
+        }
+
+        function toggleAumentoCarga() {
+            const aumento = document.getElementById("aumentoCarga").value;
+            const dataAumento = document.getElementById("dataAumentoCarga");
+            const acrescimo = document.getElementById("acresccimoKw");
+
+            const habilita = (aumento === "SIM");
+            dataAumento.disabled = !habilita;
+            dataAumento.required = habilita;
+            acrescimo.disabled = !habilita;
+            acrescimo.required = habilita;
+
+            if (!habilita) {
+                dataAumento.value = "";
+                acrescimo.value = "";
+            }
+        }
+
+        function imprimirRelatorio() {
+            const form = document.getElementById("dciForm");
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            window.print();
+        }
+
+        function gerarTemplateFichaMotor(id, nome, potencia) {
+            return `
+                <div class="card motor-section active">
+                    <div class="motor-title">
+                        <span>CARACTERÍSTICAS DE MOTOR COM POTÊNCIA MAIOR OU IGUAL A 75 CV</span>
+                        <span id="motor-titulo-nome-${id}">${nome} (${potencia} CV)</span>
+                    </div>
+
+                    <div class="form-grid-2" style="margin-bottom: 0.4rem;">
+                        <div class="form-group">
+                            <label>Tipo do Motor</label>
+                            <select required>
+                                <option value="" selected disabled>Selecione...</option>
+                                <option>Indução com rotor em gaiola</option>
+                                <option>Indução com rotor bobinado</option>
+                                <option>Síncrono</option>
+                                <option>Corrente Contínua</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Número de Fases</label>
+                            <select required>
+                                <option value="" selected disabled>Selecione...</option>
+                                <option>1Ø (Monofásico)</option>
+                                <option>2Ø (Bifásico)</option>
+                                <option>3Ø (Trifásico)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-3" style="margin-bottom: 0.4rem;">
+                        <div class="form-group"><label>Potência (CV)</label><input type="number" min="0" value="${potencia}"></div>
+                        <div class="form-group"><label>Tensão (V)</label><input type="text"></div>
+                        <div class="form-group"><label>Relação Ip/In</label><input type="text"></div>
+                        <div class="form-group"><label>Corrente Nominal (A)</label><input type="text"></div>
+                        <div class="form-group"><label>Corrente Partida (A)</label><input type="text"></div>
+                        <div class="form-group"><label>FP Regime</label><input type="text"></div>
+                        <div class="form-group"><label>FP Partida</label><input type="text"></div>
+                    </div>
+
+                    <div class="form-grid-3" style="margin-bottom: 0.4rem;">
+                        <div class="form-group"><label>Número de Partidas (Hora)</label><input type="number" min="0" value="0"></div>
+                        <div class="form-group"><label>Número de Partidas (Dia)</label><input type="number" min="0" value="0"></div>
+                        <div class="form-group"><label>Outras Partidas — Especificar</label><input type="text"></div>
+                    </div>
+
+                    <div class="form-grid-2" style="margin-bottom: 0.4rem;">
+                        <div class="form-group">
+                            <label>Dispositivo Auxiliar de Partida</label>
+                            <select required>
+                                <option value="" selected disabled>Selecione...</option>
+                                <option>Chave Compensadora</option>
+                                <option>Chave Estrela Triângulo</option>
+                                <option>Chave Série Paralelo</option>
+                                <option>Inversor de Frequência</option>
+                                <option>Resistência Rotória</option>
+                                <option>Resistência / Reatância Primária</option>
+                                <option>Soft Start</option>
+                                <option>Nenhum - Partida Direta</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Queda Tensão Suportada na Partida (%)</label><input type="text"></div>
+                    </div>
+
+                    <div class="form-grid-4" style="margin-bottom: 0.4rem;">
+                        <div class="form-group"><label>TAP (%)</label><input type="text"></div>
+                        <div class="form-group"><label>Ajuste (%)</label><input type="text"></div>
+                        <div class="form-group"><label>Transformador (kVA)</label><input type="text"></div>
+                        <div class="form-group"><label>Impedância Trafo (%)</label><input type="text"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Se houver motores com partidas simultâneas, favor informar as potências:</label>
+                        <input type="text">
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+
+    <!-- Vercel Web Analytics Script -->
+    <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
