@@ -1,0 +1,23 @@
+{
+  "name": "dci",
+  "version": "1.0.0",
+  "description": "Detalhamento de Carga Instalada (DCI) — COPEL",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JEduDias/DCI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JEduDias/DCI/issues"
+  },
+  "homepage": "https://github.com/JEduDias/DCI#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
